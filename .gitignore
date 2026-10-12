@@ -1,0 +1,25 @@
+# Android
+**/build/
+.gradle/
+.idea/
+local.properties
+*.iml
+.cxx/
+captures/
+
+# Node / React
+node_modules/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets (passwords, API keys, database URLs)
+.env
+
+# Operating system
+.DS_Store
+Thumbs.db

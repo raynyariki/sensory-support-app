@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Sensory Support</string>
+    <string name="splash_tagline">Understand the sounds around you</string>
+    <string name="hint_name">Full Name</string>
+    <string name="hint_confirm_password">Confirm Password</string>
+    <string name="btn_register">Create Account</string>
+    <string name="prompt_have_account">Already have an account? Login</string>
+    <string name="error_name_empty">Name cannot be empty</string>
+    <string name="error_password_short">Password must be at least 8 characters</string>
+    <string name="error_password_mismatch">Passwords do not match</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_login">Login</string>
+    <string name="prompt_no_account">Don\'t have an account? Register</string>
+    <string name="error_email_empty">Email cannot be empty</string>
+    <string name="error_email_invalid">Enter a valid email address</string>
+    <string name="error_password_empty">Password cannot be empty</string>
+</resources>
