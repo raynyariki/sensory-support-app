@@ -1,0 +1,48 @@
+.auth {
+  padding-block: var(--space-8);
+}
+
+.auth__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.auth__form {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.auth__form h1 {
+  font-size: var(--text-xl);
+}
+
+.auth__form form {
+  margin-top: var(--space-6);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.auth__switch {
+  margin-top: var(--space-5);
+}
+
+/* A field with an error gets a clay border */
+.field input[aria-invalid="true"] {
+  border-color: var(--color-alert);
+  border-width: 2px;
+}
+
+@media (max-width: 48rem) {
+  .auth {
+    padding-block: var(--space-7);
+  }
+
+  .auth__inner {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}

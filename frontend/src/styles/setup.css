@@ -1,0 +1,119 @@
+.setup {
+  padding-block: var(--space-8);
+}
+
+.setup__inner {
+  max-width: 46rem;
+  margin-inline: 0;
+}
+
+.setup__lead {
+  max-width: 34rem;
+  margin-bottom: var(--space-6);
+  font-size: var(--text-lg);
+}
+
+/* One sound = one fieldset */
+.choice {
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-5) 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.choice__label {
+  margin-bottom: var(--space-3);
+  padding: 0;
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+/* Joined row of four options */
+.choice__options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.choice__option {
+  position: relative;
+}
+
+/* The real radio button is hidden. Its label is what the user sees. */
+.choice__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.choice__option label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target);
+  margin-left: -1.5px;
+  padding: 0 var(--space-3);
+  font-weight: 500;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-input-border);
+  cursor: pointer;
+}
+
+.choice__option:first-child label {
+  margin-left: 0;
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.choice__option:last-child label {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.choice__option input:not(:checked) + label:hover {
+  background: var(--color-accent-tint);
+}
+
+.choice__option input:checked + label {
+  position: relative;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.choice__option input:focus-visible + label {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* Form-level message and button */
+.form-alert {
+  margin: var(--space-4) 0 0;
+  font-weight: 600;
+  color: var(--color-alert);
+}
+
+.setup__submit {
+  margin-top: var(--space-6);
+}
+
+/* Small screens: two options per row, separated */
+@media (max-width: 40rem) {
+  .setup {
+    padding-block: var(--space-7);
+  }
+
+  .choice__options {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+  }
+
+  .choice__option label,
+  .choice__option:first-child label,
+  .choice__option:last-child label {
+    margin-left: 0;
+    border-radius: var(--radius);
+  }
+}
