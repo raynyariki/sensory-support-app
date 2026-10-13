@@ -7,6 +7,7 @@ import "./styles/site.css";
 import "./styles/auth.css";
 import "./styles/setup.css";
 import "./styles/app.css";
+import "./styles/monitor.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

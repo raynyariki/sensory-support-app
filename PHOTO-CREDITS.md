@@ -12,3 +12,9 @@ their photographer, source and licence.
 
 |---|---|---|---|
 
+
+
+hero.jpg
+
+community.jpg
+
