@@ -8,7 +8,9 @@ import Setup from "./pages/Setup";
 import Dashboard from "./pages/Dashboard";
 import Monitor from "./pages/Monitor";
 import History from "./pages/History";
+import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -24,7 +26,9 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/monitor" element={<Monitor />} />
         <Route path="/history" element={<History />} />
+        <Route path="/analytics" element={<Analytics />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
   );

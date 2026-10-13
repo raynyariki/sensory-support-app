@@ -1,7 +1,13 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { SOUND_CATEGORIES, SENSITIVITY_LEVELS } from "../data/soundCategories";
 import { loadSoundProfile } from "../utils/soundProfile";
-import { getRelevanceMessage } from "../utils/personalisation";
+import { loadSettings } from "../utils/settings";
+import {
+  getRelevanceMessage,
+  getNoAlertMessage,
+  shouldAlert,
+} from "../utils/personalisation";
 
 // Example detections for the design preview only. Not real model output.
 const SAMPLE_DETECTIONS = [
@@ -15,6 +21,7 @@ const SAMPLE_DETECTIONS = [
 
 function Monitor() {
   const profile = loadSoundProfile();
+  const settings = loadSettings();
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [sampleIndex, setSampleIndex] = useState(-1);
 
@@ -23,12 +30,16 @@ function Monitor() {
   let detection = null;
   if (sample) {
     const level = profile[sample.soundId] || "none";
+    const alert = shouldAlert(level, settings);
     detection = {
       soundLabel: SOUND_CATEGORIES.find((s) => s.id === sample.soundId).label,
       percent: Math.round(sample.confidence * 100),
-      level,
       levelLabel: SENSITIVITY_LEVELS.find((l) => l.value === level).label,
-      message: getRelevanceMessage(level),
+      alert,
+      style: alert ? level : "none",
+      message: alert
+        ? getRelevanceMessage(level)
+        : getNoAlertMessage(level, settings),
     };
   }
 
@@ -100,9 +111,12 @@ function Monitor() {
               <p className="result__sensitivity">
                 Your sensitivity: <strong>{detection.levelLabel}</strong>
               </p>
-              <div className={`relevance relevance--${detection.level}`}>
+              <div className={`relevance relevance--${detection.style}`}>
                 <p>{detection.message}</p>
               </div>
+              <p>
+                <Link to="/settings">Change alert settings</Link>
+              </p>
             </>
           ) : (
             <p className="muted">

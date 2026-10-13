@@ -8,6 +8,9 @@ import "./styles/auth.css";
 import "./styles/setup.css";
 import "./styles/app.css";
 import "./styles/monitor.css";
+import "./styles/history.css";
+import "./styles/analytics.css";
+import "./styles/profile.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FormField from "../components/FormField";
+import { saveAccount } from "../utils/account";
 import {
   MAX_NAME_LENGTH,
   validateName,
@@ -41,6 +42,7 @@ function Register() {
     if (Object.values(newErrors).some(Boolean)) return;
 
     // Later: send the values to POST /auth/register on the backend.
+    saveAccount({ name: values.name.trim(), email: values.email.trim() });
     navigate("/setup");
   }
 

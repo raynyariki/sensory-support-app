@@ -1,0 +1,100 @@
+.history {
+  max-width: 46rem;
+  margin-inline: 0;
+}
+
+.history__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.history__lead {
+  margin-bottom: var(--space-5);
+}
+
+.history__form {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-accent-tint);
+  border-radius: var(--radius);
+}
+
+/* Multi-line note box */
+.field textarea {
+  min-height: 7rem;
+  padding: var(--space-3) var(--space-4);
+  resize: vertical;
+}
+
+.field select {
+  max-width: 100%;
+}
+
+.field textarea[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: var(--color-alert);
+  border-width: 2px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Entries */
+.entries {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.entry h2 {
+  margin-bottom: var(--space-1);
+}
+
+.entry__sound {
+  font-size: var(--text-lg);
+}
+
+.entry__meta {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.entry__note {
+  max-width: 38rem;
+  overflow-wrap: anywhere;
+}
+
+.entry__confirm p {
+  margin-bottom: var(--space-3);
+  font-weight: 600;
+}
+
+/* Delete button */
+.btn-danger {
+  color: var(--color-on-accent);
+  background: var(--color-alert);
+  border-color: var(--color-alert);
+}
+
+.btn-danger:hover {
+  background: #8f4120;
+  border-color: #8f4120;
+}
+
+@media (max-width: 40rem) {
+  .history__form {
+    padding: var(--space-4);
+  }
+}

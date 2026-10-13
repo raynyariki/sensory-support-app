@@ -1,6 +1,13 @@
 import { Link } from "react-router-dom";
 import { SOUND_CATEGORIES, SENSITIVITY_LEVELS } from "../data/soundCategories";
 import { loadSoundProfile } from "../utils/soundProfile";
+import {
+  loadEntries,
+  sortNewestFirst,
+  formatTimestamp,
+} from "../utils/history";
+import { countHighRelevance } from "../utils/analytics";
+import { soundLabel } from "../utils/labels";
 
 const RELEVANT_LEVELS = SENSITIVITY_LEVELS.filter(
   (level) => level.value !== "none"
@@ -8,6 +15,10 @@ const RELEVANT_LEVELS = SENSITIVITY_LEVELS.filter(
 
 function Dashboard() {
   const profile = loadSoundProfile();
+  const entries = sortNewestFirst(loadEntries());
+  const latest = entries[0];
+  const recent = entries.slice(0, 3);
+  const highCount = countHighRelevance(entries, profile);
 
   // Group the user's sounds by how relevant they marked them.
   const groups = RELEVANT_LEVELS.map((level) => ({
@@ -33,16 +44,16 @@ function Dashboard() {
 
         <dl className="stats">
           <div>
-            <dt>Last detected sound</dt>
-            <dd>None yet</dd>
+            <dt>Last recorded sound</dt>
+            <dd>{latest ? soundLabel(latest.soundId) : "None yet"}</dd>
           </div>
           <div>
-            <dt>High-relevance events</dt>
-            <dd>0</dd>
+            <dt>High-relevance entries</dt>
+            <dd>{highCount}</dd>
           </div>
           <div>
-            <dt>Events recorded</dt>
-            <dd>0</dd>
+            <dt>Entries recorded</dt>
+            <dd>{entries.length}</dd>
           </div>
         </dl>
 
@@ -62,18 +73,32 @@ function Dashboard() {
               <p className="muted">You haven't rated any sounds yet.</p>
             )}
             <p>
-              <Link to="/setup">Edit sound profile</Link>
+              <Link to="/profile">Manage sound profile</Link>
             </p>
           </section>
 
           <section>
-            <h2>Recent events</h2>
-            <p className="muted">
-              No sounds have been recorded yet. Once you start monitoring,
-              detected sounds will appear here.
-            </p>
+            <h2>Recent entries</h2>
+            {recent.length > 0 ? (
+              <ul className="recent">
+                {recent.map((entry) => (
+                  <li key={entry.id}>
+                    <strong>{soundLabel(entry.soundId)}</strong>
+                    <span className="recent__meta">
+                      {formatTimestamp(entry.timestamp)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">
+                No entries yet. Add one in History to start your sound diary.
+              </p>
+            )}
             <p>
               <Link to="/history">Go to history</Link>
+              {" · "}
+              <Link to="/analytics">View analytics</Link>
             </p>
           </section>
         </div>
