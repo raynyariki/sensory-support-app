@@ -168,3 +168,9 @@
     padding-block: var(--space-7);
   }
 }
+
+.form-alert {
+  margin: var(--space-4) 0;
+  font-weight: 600;
+  color: var(--color-alert);
+}

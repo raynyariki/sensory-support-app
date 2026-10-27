@@ -90,7 +90,7 @@ function Login() {
             </label>
 
             {formError && (
-              <p className="form-error" role="alert">
+              <p className="form-alert" role="alert">
                 {formError}
               </p>
             )}

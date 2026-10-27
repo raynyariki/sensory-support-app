@@ -47,11 +47,6 @@
   }
 }
 
-.form-error {
-  margin: 0 0 1rem;
-  color: var(--color-danger, #9b1c1c);
-  font-weight: 600;
-}
 
 .auth__remember {
   display: flex;

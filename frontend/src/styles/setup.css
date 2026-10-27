@@ -88,12 +88,6 @@
   outline-offset: 3px;
 }
 
-/* Form-level message and button */
-.form-alert {
-  margin: var(--space-4) 0 0;
-  font-weight: 600;
-  color: var(--color-alert);
-}
 
 .setup__submit {
   margin-top: var(--space-6);
