@@ -1,24 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SensitivityChoice from "../components/SensitivityChoice";
 import { SOUND_CATEGORIES } from "../data/soundCategories";
 import {
-  loadSoundProfile,
+  defaultProfile,
+  fetchSoundProfile,
   saveSoundProfile,
   hasAnyRelevantSound,
 } from "../utils/soundProfile";
 
 function Setup() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(loadSoundProfile);
+  const [profile, setProfile] = useState(defaultProfile);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchSoundProfile()
+      .then((saved) => {
+        if (!cancelled) setProfile(saved);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setLoadError(err.detail || "Your saved choices could not be loaded.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleChange(soundId, level) {
     setProfile((current) => ({ ...current, [soundId]: level }));
     setError("");
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (!hasAnyRelevantSound(profile)) {
@@ -26,13 +49,15 @@ function Setup() {
       return;
     }
 
-    // Later: send the profile to POST /sound-preferences on the backend.
-    const saved = saveSoundProfile(profile);
-    if (!saved) {
-      setError("Your choices could not be saved. Please try again.");
-      return;
+    setSaving(true);
+    try {
+      await saveSoundProfile(profile);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.detail || "Your choices could not be saved. Please try again.");
+    } finally {
+      setSaving(false);
     }
-    navigate("/dashboard");
   }
 
   return (
@@ -44,27 +69,46 @@ function Setup() {
           at any time.
         </p>
 
-        <form onSubmit={handleSubmit} noValidate>
-          {SOUND_CATEGORIES.map((sound) => (
-            <SensitivityChoice
-              key={sound.id}
-              name={sound.id}
-              label={sound.label}
-              value={profile[sound.id]}
-              onChange={handleChange}
-            />
-          ))}
+        {loading && <p className="muted">Loading your choices...</p>}
 
-          {error && (
+        {loadError && (
+          <>
             <p className="form-alert" role="alert">
-              {error}
+              {loadError}
             </p>
-          )}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => window.location.reload()}
+            >
+              Try again
+            </button>
+          </>
+        )}
 
-          <button type="submit" className="btn setup__submit">
-            Save and continue
-          </button>
-        </form>
+        {!loading && !loadError && (
+          <form onSubmit={handleSubmit} noValidate>
+            {SOUND_CATEGORIES.map((sound) => (
+              <SensitivityChoice
+                key={sound.id}
+                name={sound.id}
+                label={sound.label}
+                value={profile[sound.id]}
+                onChange={handleChange}
+              />
+            ))}
+
+            {error && (
+              <p className="form-alert" role="alert">
+                {error}
+              </p>
+            )}
+
+            <button type="submit" className="btn setup__submit" disabled={saving}>
+              {saving ? "Saving..." : "Save and continue"}
+            </button>
+          </form>
+        )}
       </div>
     </section>
   );

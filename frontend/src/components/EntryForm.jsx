@@ -3,7 +3,14 @@ import { SOUND_CATEGORIES } from "../data/soundCategories";
 import { RESPONSES } from "../data/responses";
 import { MAX_NOTE_LENGTH, validateEntry } from "../utils/history";
 
-function EntryForm({ idPrefix, initialValues, submitLabel, onSubmit, onCancel }) {
+function EntryForm({
+  idPrefix,
+  initialValues,
+  submitLabel,
+  onSubmit,
+  onCancel,
+  submitting = false,
+}) {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
 
@@ -14,6 +21,7 @@ function EntryForm({ idPrefix, initialValues, submitLabel, onSubmit, onCancel })
 
   function handleSubmit(event) {
     event.preventDefault();
+    if (submitting) return;
     const newErrors = validateEntry(values);
     setErrors(newErrors);
     if (Object.values(newErrors).some(Boolean)) return;
@@ -105,10 +113,15 @@ function EntryForm({ idPrefix, initialValues, submitLabel, onSubmit, onCancel })
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn">
-          {submitLabel}
+        <button type="submit" className="btn" disabled={submitting}>
+          {submitting ? "Saving..." : submitLabel}
         </button>
-        <button type="button" className="btn btn-secondary" onClick={onCancel}>
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={onCancel}
+          disabled={submitting}
+        >
           Cancel
         </button>
       </div>

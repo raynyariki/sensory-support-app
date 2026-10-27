@@ -1,10 +1,17 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { api, clearToken } from "../api";
 
 function AppHeader() {
   const navigate = useNavigate();
 
-  function handleLogout() {
-    // Later: clear the saved login token before leaving.
+  async function handleLogout() {
+    try {
+      // Tells the server to invalidate this login on every device.
+      await api.post("/auth/logout");
+    } catch {
+      // Even if the server cannot be reached, sign out on this device.
+    }
+    clearToken();
     navigate("/");
   }
 

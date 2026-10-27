@@ -1,11 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { SOUND_CATEGORIES, SENSITIVITY_LEVELS } from "../data/soundCategories";
-import { loadSoundProfile } from "../utils/soundProfile";
-import {
-  loadEntries,
-  sortNewestFirst,
-  formatTimestamp,
-} from "../utils/history";
+import { fetchSoundProfile } from "../utils/soundProfile";
+import { fetchEntries, sortNewestFirst, formatTimestamp } from "../utils/history";
 import { countHighRelevance } from "../utils/analytics";
 import { soundLabel } from "../utils/labels";
 
@@ -14,8 +11,59 @@ const RELEVANT_LEVELS = SENSITIVITY_LEVELS.filter(
 );
 
 function Dashboard() {
-  const profile = loadSoundProfile();
-  const entries = sortNewestFirst(loadEntries());
+  const [profile, setProfile] = useState(null);
+  const [allEntries, setAllEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([fetchSoundProfile(), fetchEntries()])
+      .then(([loadedProfile, loadedEntries]) => {
+        if (!cancelled) {
+          setProfile(loadedProfile);
+          setAllEntries(loadedEntries);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setLoadError(error.detail || "Your information could not be loaded.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading || loadError) {
+    return (
+      <section className="page">
+        <div className="container">
+          <h1>Home</h1>
+          {loading && <p className="muted">Loading...</p>}
+          {loadError && (
+            <>
+              <p className="form-alert" role="alert">
+                {loadError}
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  const entries = sortNewestFirst(allEntries);
   const latest = entries[0];
   const recent = entries.slice(0, 3);
   const highCount = countHighRelevance(entries, profile);

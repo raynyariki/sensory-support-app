@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FormField from "../components/FormField";
-import { saveAccount } from "../utils/account";
+import { api, saveToken, ApiError } from "../api";
 import {
   MAX_NAME_LENGTH,
   validateName,
@@ -19,14 +19,17 @@ function Register() {
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
     setValues((current) => ({ ...current, [name]: value }));
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setFormError("");
 
     const newErrors = {
       name: validateName(values.name),
@@ -38,12 +41,32 @@ function Register() {
       ),
     };
     setErrors(newErrors);
-
     if (Object.values(newErrors).some(Boolean)) return;
 
-    // Later: send the values to POST /auth/register on the backend.
-    saveAccount({ name: values.name.trim(), email: values.email.trim() });
-    navigate("/setup");
+    setSubmitting(true);
+    try {
+      const data = await api.post(
+        "/auth/register",
+        {
+          name: values.name.trim(),
+          email: values.email.trim(),
+          password: values.password,
+        },
+        { auth: false }
+      );
+      // A new account starts with a short session; the login page offers "keep me signed in".
+      saveToken(data.access_token, false);
+      navigate("/setup");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrors(error.errors || {});
+        setFormError(error.detail);
+      } else {
+        setFormError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -92,8 +115,15 @@ function Register() {
               error={errors.confirmPassword}
               autoComplete="new-password"
             />
-            <button type="submit" className="btn btn-block">
-              Create account
+
+            {formError && (
+              <p className="form-error" role="alert">
+                {formError}
+              </p>
+            )}
+
+            <button type="submit" className="btn btn-block" disabled={submitting}>
+              {submitting ? "Creating account..." : "Create account"}
             </button>
           </form>
 
@@ -105,7 +135,7 @@ function Register() {
         <figure className="photo photo--portrait">
           <img
             src="/images/hero.jpg"
-            alt="Describe this photo here"
+            alt=""
             width="800"
             height="1000"
           />

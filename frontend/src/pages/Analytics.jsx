@@ -1,19 +1,60 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BarChart from "../components/BarChart";
-import { loadEntries } from "../utils/history";
-import { loadSoundProfile } from "../utils/soundProfile";
-import {
-  countBySound,
-  countByDay,
-  countByResponse,
-  countHighRelevance,
-} from "../utils/analytics";
+import { fetchAnalytics, dayLabel } from "../utils/analytics";
+
+const DAYS = 14;
 
 function Analytics() {
-  const entries = loadEntries();
-  const profile = loadSoundProfile();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
-  if (entries.length === 0) {
+  useEffect(() => {
+    let cancelled = false;
+    fetchAnalytics(DAYS)
+      .then((result) => {
+        if (!cancelled) setData(result);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setLoadError(error.detail || "Your analytics could not be loaded.");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading || loadError) {
+    return (
+      <section className="page">
+        <div className="container">
+          <h1>Analytics</h1>
+          {loading && <p className="muted">Loading...</p>}
+          {loadError && (
+            <>
+              <p className="form-alert" role="alert">
+                {loadError}
+              </p>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => window.location.reload()}
+              >
+                Try again
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  if (data.total_events === 0) {
     return (
       <section className="page">
         <div className="container">
@@ -28,17 +69,24 @@ function Analytics() {
     );
   }
 
-  const bySound = countBySound(entries);
-  const byDay = countByDay(entries, 14);
-  const byResponse = countByResponse(entries).filter((item) => item.count > 0);
+  // The server's names, reshaped for the charts.
+  const bySound = data.by_sound.map((item) => ({
+    id: item.sound_category,
+    label: item.label,
+    count: item.count,
+  }));
+  const byDay = data.by_day.map((item) => ({
+    label: dayLabel(item.date),
+    count: item.count,
+  }));
+  const byResponse = data.by_response.filter((item) => item.count > 0);
   const recurring = bySound.filter((item) => item.count >= 2);
-  const highCount = countHighRelevance(entries, profile);
 
   const soundSummary =
     "Entries per sound: " +
     bySound.map((item) => `${item.label} ${item.count}`).join(", ");
   const daySummary =
-    "Entries per day over the last 14 days: " +
+    `Entries per day over the last ${DAYS} days: ` +
     byDay
       .filter((item) => item.count > 0)
       .map((item) => `${item.label} ${item.count}`)
@@ -56,15 +104,15 @@ function Analytics() {
         <dl className="stats">
           <div>
             <dt>Entries recorded</dt>
-            <dd>{entries.length}</dd>
+            <dd>{data.total_events}</dd>
           </div>
           <div>
             <dt>Most frequent sound</dt>
-            <dd>{bySound[0].label}</dd>
+            <dd>{data.most_frequent_sound.label}</dd>
           </div>
           <div>
             <dt>High-relevance entries</dt>
-            <dd>{highCount}</dd>
+            <dd>{data.high_relevance_events}</dd>
           </div>
         </dl>
 
@@ -80,7 +128,7 @@ function Analytics() {
         </section>
 
         <section className="analytics__section">
-          <h2>Entries over the last 14 days</h2>
+          <h2>Entries over the last {DAYS} days</h2>
           <BarChart
             labels={byDay.map((item) => item.label)}
             values={byDay.map((item) => item.count)}

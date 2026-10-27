@@ -1,54 +1,87 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  ALERT_THRESHOLDS,
-  loadSettings,
-  saveSettings,
-  clearSettings,
-} from "../utils/settings";
-import { saveEntries } from "../utils/history";
-import { defaultProfile, saveSoundProfile } from "../utils/soundProfile";
-import { clearAccount } from "../utils/account";
+import { ALERT_THRESHOLDS } from "../utils/settings";
+import { api, clearToken } from "../api";
 
 function Settings() {
   const navigate = useNavigate();
-  const [settings, setSettings] = useState(loadSettings);
+  const [settings, setSettings] = useState({
+    alertsEnabled: true,
+    alertThreshold: "low",
+  });
+  const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(null); // "history" | "account" | null
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  function updateSettings(changes) {
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const data = await api.get("/settings");
+        if (cancelled) return;
+        setSettings({
+          alertsEnabled: data.alerts_enabled,
+          alertThreshold: data.alert_threshold,
+        });
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function updateSettings(changes) {
     const next = { ...settings, ...changes };
-    if (!saveSettings(next)) {
-      setError("Your settings could not be saved. Please try again.");
-      return;
+    try {
+      const saved = await api.put("/settings", {
+        alerts_enabled: next.alertsEnabled,
+        alert_threshold: next.alertThreshold,
+      });
+      setSettings({
+        alertsEnabled: saved.alerts_enabled,
+        alertThreshold: saved.alert_threshold,
+      });
+      setError("");
+      setMessage("");
+    } catch (err) {
+      setError(err.message);
     }
-    setError("");
-    setMessage("");
-    setSettings(next);
   }
 
-  function handleDeleteHistory() {
-    if (!saveEntries([])) {
-      setError("Your history could not be deleted. Please try again.");
-      return;
+  async function handleDeleteHistory() {
+    try {
+      await api.delete("/sound-events?confirm=true");
+      setError("");
+      setConfirming(null);
+      setMessage("Your history has been deleted.");
+    } catch (err) {
+      setError(err.message);
     }
-    setError("");
-    setConfirming(null);
-    setMessage("Your history has been deleted.");
   }
 
-  function handleDeleteAccount() {
-    // Later: call the backend to delete the account and all stored data.
-    saveEntries([]);
-    saveSoundProfile(defaultProfile());
-    clearAccount();
-    clearSettings();
-    navigate("/");
+  async function handleDeleteAccount() {
+    try {
+      await api.delete("/profile?confirm=true");
+      clearToken();
+      navigate("/");
+    } catch (err) {
+      setError(err.message);
+    }
   }
 
-  function handleLogout() {
-    // Later: clear the saved login token before leaving.
+  async function handleLogout() {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // Even if the server cannot be reached, sign out on this device.
+    }
+    clearToken();
     navigate("/");
   }
 
@@ -75,6 +108,7 @@ function Settings() {
             <input
               type="checkbox"
               checked={settings.alertsEnabled}
+              disabled={loading}
               onChange={(event) =>
                 updateSettings({ alertsEnabled: event.target.checked })
               }
@@ -82,7 +116,10 @@ function Settings() {
             Show alerts when a sound is detected
           </label>
 
-          <fieldset className="radio-list" disabled={!settings.alertsEnabled}>
+          <fieldset
+            className="radio-list"
+            disabled={loading || !settings.alertsEnabled}
+          >
             <legend>Alert me for</legend>
             {ALERT_THRESHOLDS.map((option) => (
               <label key={option.value}>
@@ -104,7 +141,8 @@ function Settings() {
         <section className="settings__section">
           <h2>Sound profile and account</h2>
           <p>
-            Change which sounds matter to you, or update your name and email.
+            Change which sounds matter to you, or update your name, email and
+            password.
           </p>
           <p>
             <Link to="/profile">Go to profile</Link>
@@ -122,8 +160,8 @@ function Settings() {
             itself.
           </p>
           <p>
-            At the moment, your information is stored in this browser on this
-            device only. You can delete it at any time below.
+            Your account, sound profile and history are stored on the server
+            and are visible only to you. You can delete them at any time below.
           </p>
         </section>
 

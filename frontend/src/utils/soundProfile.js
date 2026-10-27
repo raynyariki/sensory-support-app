@@ -1,6 +1,5 @@
+import { api } from "../api";
 import { SOUND_CATEGORIES } from "../data/soundCategories";
-
-const STORAGE_KEY = "sensorySupport.soundProfile";
 
 // Every sound starts as "Not relevant".
 export function defaultProfile() {
@@ -11,23 +10,26 @@ export function defaultProfile() {
   return profile;
 }
 
-export function loadSoundProfile() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultProfile();
-    return { ...defaultProfile(), ...JSON.parse(raw) };
-  } catch {
-    return defaultProfile();
-  }
+// Reads the signed-in user's sound profile from the server.
+// The server returns a list of rows; the app works with { soundId: level }.
+export async function fetchSoundProfile() {
+  const rows = await api.get("/sound-preferences");
+  const profile = defaultProfile();
+  rows.forEach((row) => {
+    if (row.sound_category in profile) {
+      profile[row.sound_category] = row.sensitivity_level;
+    }
+  });
+  return profile;
 }
 
-export function saveSoundProfile(profile) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-    return true;
-  } catch {
-    return false;
-  }
+// Saves the whole profile in one request. Throws an ApiError if it fails.
+export async function saveSoundProfile(profile) {
+  const preferences = SOUND_CATEGORIES.map((sound) => ({
+    sound_category: sound.id,
+    sensitivity_level: profile[sound.id] || "none",
+  }));
+  await api.put("/sound-preferences", { preferences });
 }
 
 export function hasAnyRelevantSound(profile) {
