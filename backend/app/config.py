@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     login_max_attempts: int = 5
     login_window_seconds: int = 900
 
+    # Start-up
+    warm_up: bool = False  # run one tiny recording through the audio code at start-up (set true when hosted)
+
     # Browser access (comma-separated list of allowed frontend addresses)
     cors_origins: str = "http://localhost:5173"
 
@@ -37,6 +40,16 @@ class Settings(BaseSettings):
     max_upload_bytes: int = 5_000_000
     max_audio_seconds: float = 15.0
     event_cooldown_seconds: int = 60  # one automatic event per sound per minute
+
+    @field_validator("database_url")
+    @classmethod
+    def _use_psycopg_driver(cls, value: str) -> str:
+        # Hosts such as Neon hand out "postgresql://..." or "postgres://..." addresses.
+        # This app uses the psycopg 3 driver, so the address is rewritten to match.
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://" + value[len(prefix):]
+        return value
 
     @field_validator("secret_key")
     @classmethod

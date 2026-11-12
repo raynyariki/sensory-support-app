@@ -5,4 +5,3 @@ __pycache__/
 .pytest_cache/
 data/
 models/feature_cache.npz
-models/model.joblib

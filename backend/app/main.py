@@ -4,6 +4,7 @@ Run it with:   uvicorn app.main:app --reload
 Then open:     http://localhost:8000/docs
 """
 
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
@@ -31,9 +32,29 @@ Most endpoints need a token: log in at `POST /auth/login`, copy the `access_toke
 """
 
 
+def _warm_up() -> None:
+    """Run one tiny recording through the audio code and load the model.
+
+    The first call to the audio libraries is slow because they prepare their code.
+    Doing it at start-up means the first real recording is not slow.
+    """
+    try:
+        import numpy as np
+
+        from app.audio import TARGET_SR, extract_features
+
+        noise = np.random.default_rng(0).normal(0, 0.1, TARGET_SR * 2).astype("float32")
+        extract_features(noise)
+        get_model_service().available  # loads the model file
+    except Exception:
+        pass  # warming up is only an optimisation; never stop the server for it
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)  # creates any missing tables on start-up
+    if get_settings().warm_up:
+        threading.Thread(target=_warm_up, daemon=True).start()
     yield
 
 
